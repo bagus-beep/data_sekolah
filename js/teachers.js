@@ -1,97 +1,79 @@
-/* ===============================
-   KONFIGURASI
-================================ */
-const DATA_URL = "data/teachers_rows.json";
-const ROWS_PER_PAGE = 5;
-
-let teachers = [];
-let filteredTeachers = [];
+const rowsPerPage = 5;
 let currentPage = 1;
+let filteredData = [];
 
-/* ===============================
-   FETCH DATA
-================================ */
-async function fetchTeachers() {
-  const res = await fetch(DATA_URL);
-  teachers = await res.json();
-  filteredTeachers = teachers;
-  renderTable();
-}
+// FETCH & JOIN DATA
+Promise.all([
+  fetch('./data/teachers_rows.json').then(r=>r.json()),
+  fetch('./data/lesson_schedule_rows.json').then(r=>r.json()),
+  fetch('./data/lessons_rows.json').then(r=>r.json()),
+  fetch('./data/classes_rows.json').then(r=>r.json())
+]).then(([teachers, schedules, lessons, classes]) => {
 
-/* ===============================
-   RENDER TABLE
-================================ */
-function renderTable() {
-  const tbody = document.getElementById("teachersTable");
-  tbody.innerHTML = "";
+  const lessonById = Object.fromEntries(lessons.map(l => [l.id, l]));
+  const classById  = Object.fromEntries(classes.map(c => [c.id, c]));
 
-  const start = (currentPage - 1) * ROWS_PER_PAGE;
-  const end = start + ROWS_PER_PAGE;
-  const pageData = filteredTeachers.slice(start, end);
-
-  pageData.forEach((t, index) => {
-    const row = document.createElement("tr");
-    row.className = "border-t hover:bg-slate-50";
-
-    row.innerHTML = `
-      <td class="px-4 py-3">${start + index + 1}</td>
-      <td class="px-4 py-3">${t.nip}</td>
-      <td class="px-4 py-3 font-medium">${t.name}</td>
-      <td class="px-4 py-3">${t.address}</td>
-      <td class="px-4 py-3 text-slate-500">
-        ${new Date(t.created_at).toLocaleDateString("id-ID")}
-      </td>
-    `;
-    tbody.appendChild(row);
+  // JOIN DATA → FLAT TABLE
+  filteredData = [];
+  teachers.forEach(t => {
+    schedules
+      .filter(s => s.teacher_id === t.id)
+      .forEach(s => {
+        filteredData.push({
+          nip: t.nip,
+          teacher: t.name,
+          lesson: lessonById[s.lessons_id]?.subject || '-',
+          class: classById[s.class_id]?.name || '-'
+        });
+      });
   });
 
-  updatePagination();
+  renderTable();
+});
+
+// RENDER TABLE
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  const start = (currentPage - 1) * rowsPerPage;
+  const pageData = filteredData.slice(start, start + rowsPerPage);
+
+  pageData.forEach(row => {
+    tbody.innerHTML += `
+      <tr class="border-t hover:bg-slate-50">
+        <td class="p-3">${row.nip}</td>
+        <td class="p-3 font-medium">${row.teacher}</td>
+        <td class="p-3">${row.lesson}</td>
+        <td class="p-3">${row.class}</td>
+      </tr>`;
+  });
+
+  document.getElementById('info').textContent =
+    `Halaman ${currentPage} dari ${Math.ceil(filteredData.length / rowsPerPage)}`;
 }
 
-/* ===============================
-   PAGINATION
-================================ */
-function updatePagination() {
-  const totalPages = Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+// SEARCH
+document.getElementById('searchInput').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  filteredData = filteredData.filter(row =>
+    Object.values(row).some(v => v.toLowerCase().includes(q))
+  );
+  currentPage = 1;
+  renderTable();
+});
 
-  document.getElementById("paginationInfo").textContent =
-    `Halaman ${currentPage} dari ${totalPages}`;
-
-  document.getElementById("prevBtn").disabled = currentPage === 1;
-  document.getElementById("nextBtn").disabled = currentPage === totalPages;
-}
-
-document.getElementById("prevBtn").onclick = () => {
+// PAGINATION
+document.getElementById('prevBtn').onclick = () => {
   if (currentPage > 1) {
     currentPage--;
     renderTable();
   }
 };
 
-document.getElementById("nextBtn").onclick = () => {
-  const totalPages = Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
-  if (currentPage < totalPages) {
+document.getElementById('nextBtn').onclick = () => {
+  if (currentPage < Math.ceil(filteredData.length / rowsPerPage)) {
     currentPage++;
     renderTable();
   }
 };
-
-/* ===============================
-   SEARCH
-================================ */
-document.getElementById("searchInput").addEventListener("input", (e) => {
-  const keyword = e.target.value.toLowerCase();
-
-  filteredTeachers = teachers.filter(t =>
-    t.name.toLowerCase().includes(keyword) ||
-    t.nip.toLowerCase().includes(keyword)
-  );
-
-  currentPage = 1;
-  renderTable();
-});
-
-/* ===============================
-   INIT
-================================ */
-fetchTeachers();
