@@ -1,56 +1,49 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Data Mata Pelajaran</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <title>Data Mata Pelajaran</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-6">
 
-<h1 class="text-2xl font-bold mb-4">Mata Pelajaran</h1>
+  <div class="bg-white rounded-xl shadow p-6">
+    <h1 class="text-xl font-bold mb-4">Data Mata Pelajaran</h1>
 
-<table class="w-full bg-white rounded-xl shadow text-sm">
-<thead class="bg-slate-200">
-<tr>
-  <th class="p-3">Kode</th>
-  <th class="p-3">Mata Pelajaran</th>
-  <th class="p-3">Guru</th>
-  <th class="p-3">Kelas</th>
-  <th class="p-3">Jadwal</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
+    <!-- SEARCH -->
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Cari mata pelajaran, guru, atau kelas..."
+      class="w-full mb-4 p-2 border rounded-lg focus:outline-none focus:ring"
+    />
 
-<script>
-Promise.all([
-  fetch('./data/lessons.json').then(r=>r.json()),
-  fetch('./data/lesson_schedule.json').then(r=>r.json()),
-  fetch('./data/teachers.json').then(r=>r.json()),
-  fetch('./data/classes.json').then(r=>r.json())
-]).then(([lessons, schedules, teachers, classes]) => {
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-100">
+          <tr>
+            <th class="p-3 text-left">Mata Pelajaran</th>
+            <th class="p-3 text-left">Guru</th>
+            <th class="p-3 text-left">Kelas</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
 
-  const getTeacher = id => teachers.find(t => t.id === id)?.name || '-';
-  const getClass = id => classes.find(c => c.id === id)?.name || '-';
+    <!-- PAGINATION -->
+    <div class="flex items-center justify-between mt-4">
+      <button id="prevBtn" class="px-3 py-1 border rounded hover:bg-slate-100">
+        Prev
+      </button>
+      <span id="info" class="text-sm text-slate-500"></span>
+      <button id="nextBtn" class="px-3 py-1 border rounded hover:bg-slate-100">
+        Next
+      </button>
+    </div>
+  </div>
 
-  const tbody = document.getElementById('tbody');
-
-  lessons.forEach(l => {
-    const rows = schedules.filter(s => s.lessons_id === l.id);
-
-    rows.forEach(s => {
-      tbody.innerHTML += `
-        <tr class="border-t">
-          <td class="p-3">${l.subject_id}</td>
-          <td class="p-3">${l.subject}</td>
-          <td class="p-3">${getTeacher(s.teacher_id)}</td>
-          <td class="p-3">${getClass(s.class_id)}</td>
-          <td class="p-3">${s.day} ${s.time_start} - ${s.time_end}</td>
-        </tr>`;
-    });
-  });
-});
-</script>
-
+  <script src="js/lessons.js"></script>
 </body>
 </html>
