@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Data Mata Pelajaran</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-6">
+
+<h1 class="text-2xl font-bold mb-4">Mata Pelajaran</h1>
+
+<table class="w-full bg-white rounded-xl shadow text-sm">
+<thead class="bg-slate-200">
+<tr>
+  <th class="p-3">Kode</th>
+  <th class="p-3">Mata Pelajaran</th>
+  <th class="p-3">Guru</th>
+  <th class="p-3">Kelas</th>
+  <th class="p-3">Jadwal</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<script>
+Promise.all([
+  fetch('./data/lessons.json').then(r=>r.json()),
+  fetch('./data/lesson_schedule.json').then(r=>r.json()),
+  fetch('./data/teachers.json').then(r=>r.json()),
+  fetch('./data/classes.json').then(r=>r.json())
+]).then(([lessons, schedules, teachers, classes]) => {
+
+  const getTeacher = id => teachers.find(t => t.id === id)?.name || '-';
+  const getClass = id => classes.find(c => c.id === id)?.name || '-';
+
+  const tbody = document.getElementById('tbody');
+
+  lessons.forEach(l => {
+    const rows = schedules.filter(s => s.lessons_id === l.id);
+
+    rows.forEach(s => {
+      tbody.innerHTML += `
+        <tr class="border-t">
+          <td class="p-3">${l.subject_id}</td>
+          <td class="p-3">${l.subject}</td>
+          <td class="p-3">${getTeacher(s.teacher_id)}</td>
+          <td class="p-3">${getClass(s.class_id)}</td>
+          <td class="p-3">${s.day} ${s.time_start} - ${s.time_end}</td>
+        </tr>`;
+    });
+  });
+});
+</script>
+
+</body>
+</html>

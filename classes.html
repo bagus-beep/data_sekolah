@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Data Kelas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-6">
+
+<h1 class="text-2xl font-bold mb-4">Kelas</h1>
+
+<table class="w-full bg-white rounded-xl shadow text-sm">
+<thead class="bg-slate-200">
+<tr>
+  <th class="p-3">Kelas</th>
+  <th class="p-3">Mapel</th>
+  <th class="p-3">Guru</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<script>
+Promise.all([
+  fetch('./data/classes.json').then(r=>r.json()),
+  fetch('./data/lesson_schedule.json').then(r=>r.json()),
+  fetch('./data/teachers.json').then(r=>r.json()),
+  fetch('./data/lessons.json').then(r=>r.json())
+]).then(([classes, schedules, teachers, lessons]) => {
+
+  const tById = Object.fromEntries(teachers.map(t=>[t.id,t]));
+  const lById = Object.fromEntries(lessons.map(l=>[l.id,l]));
+  const tbody = document.getElementById('tbody');
+
+  classes.forEach(c => {
+    schedules
+      .filter(s => s.class_id === c.id)
+      .forEach(s => {
+        tbody.innerHTML += `
+          <tr class="border-t">
+            <td class="p-3">${c.name}</td>
+            <td class="p-3">${lById[s.lessons_id]?.subject}</td>
+            <td class="p-3">${tById[s.teacher_id]?.name}</td>
+          </tr>`;
+      });
+  });
+});
+</script>
+
+</body>
+</html>
