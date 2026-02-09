@@ -3,7 +3,6 @@ let currentPage = 1;
 let allData = [];
 let filteredData = [];
 
-// FETCH & JOIN DATA
 Promise.all([
   fetch('./data/lesson_schedule_rows.json').then(r => r.json()),
   fetch('./data/teachers_rows.json').then(r => r.json()),
@@ -16,8 +15,8 @@ Promise.all([
   const classById   = Object.fromEntries(classes.map(c => [c.id, c]));
 
   allData = schedules.map(s => ({
-    day: s.day || '-',
-    time: `${s.start_time || '-'} - ${s.end_time || '-'}`,
+    day: s.day,
+    time: `${s.time_start} - ${s.time_end}`, // ✅ FIX
     lesson: lessonById[s.lessons_id]?.subject || '-',
     teacher: teacherById[s.teacher_id]?.name || '-',
     class: classById[s.class_id]?.name || '-'
@@ -27,7 +26,6 @@ Promise.all([
   renderTable();
 });
 
-// RENDER TABLE
 function renderTable() {
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
@@ -51,21 +49,15 @@ function renderTable() {
     `Halaman ${currentPage} dari ${Math.ceil(filteredData.length / rowsPerPage)}`;
 }
 
-// SEARCH
 document.getElementById('searchInput').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
-
   filteredData = allData.filter(row =>
-    Object.values(row).some(v =>
-      String(v).toLowerCase().includes(q)
-    )
+    Object.values(row).some(v => String(v).toLowerCase().includes(q))
   );
-
   currentPage = 1;
   renderTable();
 });
 
-// PAGINATION
 document.getElementById('prevBtn').onclick = () => {
   if (currentPage > 1) {
     currentPage--;
