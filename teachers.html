@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Guru</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+
+<!-- HEADER -->
+<header class="bg-white shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">👨‍🏫 Data Guru</h1>
+    <a href="index.html" class="text-sm text-blue-600 hover:underline">
+      ← Kembali ke Dashboard
+    </a>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- SEARCH -->
+  <div class="mb-4 flex justify-between items-center">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Cari nama / NIP..."
+      class="w-full sm:w-64 px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    />
+  </div>
+
+  <!-- TABLE -->
+  <div class="bg-white rounded-xl shadow overflow-x-auto">
+    <table class="w-full border-collapse">
+      <thead class="bg-slate-50">
+        <tr class="text-left text-sm text-slate-600">
+          <th class="px-4 py-3">No</th>
+          <th class="px-4 py-3">NIP</th>
+          <th class="px-4 py-3">Nama</th>
+          <th class="px-4 py-3">Alamat</th>
+          <th class="px-4 py-3">Dibuat</th>
+        </tr>
+      </thead>
+      <tbody id="teachersTable" class="text-sm"></tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="mt-4 flex justify-between items-center text-sm">
+    <p id="paginationInfo" class="text-slate-500"></p>
+    <div class="flex gap-2">
+      <button id="prevBtn"
+        class="px-3 py-1 rounded border hover:bg-slate-100 disabled:opacity-50">
+        Prev
+      </button>
+      <button id="nextBtn"
+        class="px-3 py-1 rounded border hover:bg-slate-100 disabled:opacity-50">
+        Next
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ===============================
+   KONFIGURASI
+================================ */
+const DATA_URL = "data/teachers_rows.json";
+const ROWS_PER_PAGE = 5;
+
+let teachers = [];
+let filteredTeachers = [];
+let currentPage = 1;
+
+/* ===============================
+   FETCH DATA
+================================ */
+async function fetchTeachers() {
+  const res = await fetch(DATA_URL);
+  teachers = await res.json();
+  filteredTeachers = teachers;
+  renderTable();
+}
+
+/* ===============================
+   RENDER TABLE
+================================ */
+function renderTable() {
+  const tbody = document.getElementById("teachersTable");
+  tbody.innerHTML = "";
+
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
+  const end = start + ROWS_PER_PAGE;
+  const pageData = filteredTeachers.slice(start, end);
+
+  pageData.forEach((t, index) => {
+    const row = document.createElement("tr");
+    row.className = "border-t hover:bg-slate-50";
+
+    row.innerHTML = `
+      <td class="px-4 py-3">${start + index + 1}</td>
+      <td class="px-4 py-3">${t.nip}</td>
+      <td class="px-4 py-3 font-medium">${t.name}</td>
+      <td class="px-4 py-3">${t.address}</td>
+      <td class="px-4 py-3 text-slate-500">
+        ${new Date(t.created_at).toLocaleDateString("id-ID")}
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  updatePagination();
+}
+
+/* ===============================
+   PAGINATION
+================================ */
+function updatePagination() {
+  const totalPages = Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+
+  document.getElementById("paginationInfo").textContent =
+    `Halaman ${currentPage} dari ${totalPages}`;
+
+  document.getElementById("prevBtn").disabled = currentPage === 1;
+  document.getElementById("nextBtn").disabled = currentPage === totalPages;
+}
+
+document.getElementById("prevBtn").onclick = () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderTable();
+  }
+};
+
+document.getElementById("nextBtn").onclick = () => {
+  const totalPages = Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+  if (currentPage < totalPages) {
+    currentPage++;
+    renderTable();
+  }
+};
+
+/* ===============================
+   SEARCH
+================================ */
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const keyword = e.target.value.toLowerCase();
+
+  filteredTeachers = teachers.filter(t =>
+    t.name.toLowerCase().includes(keyword) ||
+    t.nip.toLowerCase().includes(keyword)
+  );
+
+  currentPage = 1;
+  renderTable();
+});
+
+/* ===============================
+   INIT
+================================ */
+fetchTeachers();
+</script>
+
+</body>
+</html>
