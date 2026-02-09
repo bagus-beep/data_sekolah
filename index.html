@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Akademik</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--card);
+      padding: 20px 24px;
+      font-size: 20px;
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+
+    main {
+      padding: 24px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.06);
+      transition: transform .2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .stat-title {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .loading {
+      opacity: .6;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  📊 Dashboard Akademik
+</header>
+
+<main>
+  <section class="stats-grid loading" id="stats">
+    <div class="stat-card">
+      <div class="stat-title">Total Guru</div>
+      <div class="stat-value" id="teachers">–</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Total Siswa</div>
+      <div class="stat-value" id="students">–</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Total Kelas</div>
+      <div class="stat-value" id="classes">–</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Total Mata Pelajaran</div>
+      <div class="stat-value" id="lessons">–</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Total Jadwal</div>
+      <div class="stat-value" id="schedules">–</div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ===============================
+  // FETCH SEMUA FILE (KECUALI PROFILES)
+  // ===============================
+  async function fetchDashboardData() {
+    const [
+      teachers,
+      students,
+      classes,
+      lessons,
+      schedules
+    ] = await Promise.all([
+      fetch("data/teachers_rows.json").then(r => r.json()),
+      fetch("data/students_rows.json").then(r => r.json()),
+      fetch("data/classes_rows.json").then(r => r.json()),
+      fetch("data/lessons_rows.json").then(r => r.json()),
+      fetch("data/lesson_schedule_rows.json").then(r => r.json())
+    ]);
+
+    return {
+      teachers_rows: teachers,
+      students_rows: students,
+      classes_rows: classes,
+      lessons_rows: lessons,
+      lesson_schedule_rows: schedules
+    };
+  }
+
+  // ===============================
+  // RENDER CARD STATS
+  // ===============================
+  function renderStats(data) {
+    document.getElementById("teachers").textContent =
+      data.teachers_rows.length;
+
+    document.getElementById("students").textContent =
+      data.students_rows.length;
+
+    document.getElementById("classes").textContent =
+      data.classes_rows.length;
+
+    document.getElementById("lessons").textContent =
+      data.lessons_rows.length;
+
+    document.getElementById("schedules").textContent =
+      data.lesson_schedule_rows.length;
+
+    document.getElementById("stats").classList.remove("loading");
+  }
+
+  // ===============================
+  // INIT DASHBOARD
+  // ===============================
+  async function initDashboard() {
+    try {
+      const data = await fetchDashboardData();
+      renderStats(data);
+    } catch (err) {
+      console.error("Gagal load dashboard:", err);
+      alert("Gagal memuat data dashboard");
+    }
+  }
+
+  initDashboard();
+</script>
+
+</body>
+</html>
