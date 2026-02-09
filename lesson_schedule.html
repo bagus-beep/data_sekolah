@@ -3,51 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <title>Jadwal Pelajaran</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-6">
 
-<h1 class="text-2xl font-bold mb-4">Jadwal Pelajaran</h1>
+<body class="bg-slate-100 min-h-screen">
 
-<table class="w-full bg-white rounded-xl shadow text-sm">
-<thead class="bg-slate-200">
-<tr>
-  <th class="p-3">Kelas</th>
-  <th class="p-3">Mapel</th>
-  <th class="p-3">Guru</th>
-  <th class="p-3">Hari</th>
-  <th class="p-3">Jam</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
+<!-- HEADER -->
+<header class="bg-white shadow-sm sticky top-0 z-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <h1 class="text-xl font-bold flex items-center gap-2">
+      🗓️ <span>Jadwal Pelajaran</span>
+    </h1>
+    <a href="index.html"
+       class="text-sm text-blue-600 hover:underline self-start sm:self-auto">
+      ← Kembali ke Dashboard
+    </a>
+  </div>
+</header>
 
-<script>
-Promise.all([
-  fetch('./data/lesson_schedule.json').then(r=>r.json()),
-  fetch('./data/teachers.json').then(r=>r.json()),
-  fetch('./data/lessons.json').then(r=>r.json()),
-  fetch('./data/classes.json').then(r=>r.json())
-]).then(([schedules, teachers, lessons, classes]) => {
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-  const tById = Object.fromEntries(teachers.map(t=>[t.id,t]));
-  const lById = Object.fromEntries(lessons.map(l=>[l.id,l]));
-  const cById = Object.fromEntries(classes.map(c=>[c.id,c]));
+  <!-- SEARCH -->
+  <div class="mb-4">
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Cari guru / mapel / kelas / hari..."
+      class="w-full sm:max-w-sm px-4 py-2 rounded-lg border border-slate-300
+             focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
+    />
+  </div>
 
-  const tbody = document.getElementById('tbody');
+  <!-- TABLE CARD -->
+  <div class="bg-white rounded-xl shadow overflow-hidden">
 
-  schedules.forEach(s => {
-    tbody.innerHTML += `
-      <tr class="border-t">
-        <td class="p-3">${cById[s.class_id]?.name}</td>
-        <td class="p-3">${lById[s.lessons_id]?.subject}</td>
-        <td class="p-3">${tById[s.teacher_id]?.name}</td>
-        <td class="p-3">${s.day}</td>
-        <td class="p-3">${s.time_start} - ${s.time_end}</td>
-      </tr>`;
-  });
-});
-</script>
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-200 text-slate-700">
+          <tr>
+            <th class="p-3 text-left whitespace-nowrap">Hari</th>
+            <th class="p-3 text-left whitespace-nowrap">Jam</th>
+            <th class="p-3 text-left whitespace-nowrap">Mata Pelajaran</th>
+            <th class="p-3 text-left whitespace-nowrap">Guru</th>
+            <th class="p-3 text-left whitespace-nowrap">Kelas</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="divide-y"></tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t text-sm">
+      <span id="info" class="text-slate-600"></span>
+
+      <div class="flex gap-2 self-end sm:self-auto">
+        <button
+          id="prevBtn"
+          class="px-4 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition">
+          Prev
+        </button>
+        <button
+          id="nextBtn"
+          class="px-4 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition">
+          Next
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- SCRIPT -->
+<script src="js/lesson_schedule.js"></script>
 
 </body>
 </html>
