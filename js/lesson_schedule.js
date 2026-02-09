@@ -71,3 +71,7 @@ document.getElementById('nextBtn').onclick = () => {
     renderTable();
   }
 };
+
+function formatTime(time) {
+  return time?.slice(0, 5) || '-';
+}
